@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<?php include('function.php'); ?>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -127,6 +125,7 @@
                         contentType: false,
                         processData: false,
                         success: function (respone) {
+                            console.log(respone);
                             $("#chooseImage").attr('src', 'image/' + respone);
                             // $("#hide_image").val(respone);
                         }
