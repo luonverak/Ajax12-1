@@ -1,5 +1,7 @@
 <!DOCTYPE html>
+<?php include('con.php') ?>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,7 +41,7 @@
                         <input type="text" name="name" id="name" class="form-control mb-3"
                             placeholder="Example: Luon Verak">
                         <label for="">Gender</label>
-                        <select name="" id="" class="form-select mb-3">
+                        <select name="" id="gender" class="form-select mb-3">
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                         </select>
@@ -52,14 +54,16 @@
                         <img id="chooseImage" src="image/upload.webp" width="100" alt="image/upload.webp">
                         <div class="modal-footer">
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                            <button name="btnSave" id="btnSave" type="submit" class="btn btn-primary">Save</button>
-                            <button name="btnUpdate" id="btnUpdate" type="submit"
+                            <button name="btnSave" id="btnSave" type="button" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+                            <button name="btnUpdate" id="btnUpdate" type="button"
                                 class="btn btn-success">Update</button>
                         </div>
                         <!-- Hide thumbnail -->
                         <input type="hidden" name="hide_thumbnail" id="hide_thumbnail">
                         <!-- Hide Id -->
                         <input type="hidden" name="hide_id" id="hide_id">
+                        <!-- Hide Image -->
+                        <input type="hidden" name="hide_image" id="hide_image">
                     </form>
                 </div>
             </div>
@@ -97,7 +101,27 @@
             </tr>
         </thead>
         <tbody>
-
+            <?php
+                $sql = "SELECT * FROM `student`";
+                $result = $con->query($sql);
+                while($row = mysqli_fetch_assoc($result)){
+                    echo '
+                    <tr>
+                        <td>'.$row['id'].'</td>
+                        <td>'.$row['name'].'</td>
+                        <td>'.$row['gender'].'</td>
+                        <td>'.$row['course'].'}</td>
+                        <td>
+                            <img src="image/'.$row['profile'].'" width="120" height="120" style="object-fit: cover;" alt="">
+                        </td>
+                        <td>
+                            <button id="openUpdate" class="btn btn-success" type="button " data-bs-toggle="modal" data-bs-target="#myModal"><i class="fa-solid fa-pen-to-square"></i> Update</button>
+                            <button class="btn btn-danger" type="button "><i class="fa-solid fa-trash"></i> Delete</button>
+                        </td>
+                    </tr>
+                    ';
+                }
+            ?>
         </tbody>
     </table>
 </body>
@@ -127,10 +151,47 @@
                         success: function (respone) {
                             console.log(respone);
                             $("#chooseImage").attr('src', 'image/' + respone);
-                            // $("#hide_image").val(respone);
+                            $("#hide_image").val(respone);
                         }
                     }
                 )
+            })
+            // add data
+            $("#btnSave").click(function () {
+                var name = $("#name").val();
+                var gender = $("#gender").val();
+                var course = $("#course").val();
+                var profile = $("#hide_image").val();
+
+                $.ajax({
+                    url: 'insert_data.php',
+                    method: 'post',
+                    data: {
+                        stu_name: name,
+                        stu_gender: gender,
+                        stu_course: course,
+                        stu_profile: profile,
+                    },
+                    cache: false,
+                    success: function (respone) {
+                        var data = `
+                                <tr>
+                                    <td>${respone}</td>
+                                    <td>${name}</td>
+                                    <td>${gender}</td>
+                                    <td>${course}</td>
+                                    <td>
+                                        <img src="image/${profile}" width="120" height="120" style="object-fit: cover;" alt="">
+                                    </td>
+                                    <td>
+                                        <button id="openUpdate" class="btn btn-success" type="button " data-bs-toggle="modal" data-bs-target="#myModal"><i class="fa-solid fa-pen-to-square"></i> Update</button>
+                                        <button class="btn btn-danger" type="button "><i class="fa-solid fa-trash"></i> Delete</button>
+                                    </td>
+                                </tr>
+                        `;
+                        $('tbody').append(data);
+                    }
+                })
             })
         })
         $("body").on("click", "#openUpdate", function () {
