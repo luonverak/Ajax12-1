@@ -17,6 +17,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
         integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"
+        integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 
 <body>
@@ -54,7 +57,8 @@
                         <img id="chooseImage" src="image/upload.webp" width="100" alt="image/upload.webp">
                         <div class="modal-footer">
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                            <button name="btnSave" id="btnSave" type="button" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+                            <button name="btnSave" id="btnSave" type="button" class="btn btn-primary"
+                                data-bs-dismiss="modal">Save</button>
                             <button name="btnUpdate" id="btnUpdate" type="button"
                                 class="btn btn-success">Update</button>
                         </div>
@@ -80,9 +84,10 @@
                 </div>
                 <div class="modal-body">
                     <form action="" method="post" enctype="multipart/form-data">
-                        <input type="hidden" name="tmp_id" id="id">
+                        <input type="hidden" name="tmp_id" id="tmp_id">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                        <button name="btnDelete" id="btnDelete" type="submit" class="btn btn-primary">Yes,Delete
+                        <button name="btnDelete" id="btnDeletes" type="button" class="btn btn-primary"
+                            data-bs-dismiss="modal">Yes,Delete
                             its.</button>
                     </form>
                 </div>
@@ -102,25 +107,25 @@
         </thead>
         <tbody>
             <?php
-                $sql = "SELECT * FROM `student`";
-                $result = $con->query($sql);
-                while($row = mysqli_fetch_assoc($result)){
-                    echo '
+            $sql = "SELECT * FROM `student`";
+            $result = $con->query($sql);
+            while ($row = mysqli_fetch_assoc($result)) {
+                echo '
                     <tr>
-                        <td>'.$row['id'].'</td>
-                        <td>'.$row['name'].'</td>
-                        <td>'.$row['gender'].'</td>
-                        <td>'.$row['course'].'}</td>
+                        <td>' . $row['id'] . '</td>
+                        <td>' . $row['name'] . '</td>
+                        <td>' . $row['gender'] . '</td>
+                        <td>' . $row['course'] . '}</td>
                         <td>
-                            <img src="image/'.$row['profile'].'" width="120" height="120" style="object-fit: cover;" alt="">
+                            <img src="image/' . $row['profile'] . '" width="120" height="120" style="object-fit: cover;" alt="">
                         </td>
                         <td>
                             <button id="openUpdate" class="btn btn-success" type="button " data-bs-toggle="modal" data-bs-target="#myModal"><i class="fa-solid fa-pen-to-square"></i> Update</button>
-                            <button class="btn btn-danger" type="button "><i class="fa-solid fa-trash"></i> Delete</button>
+                            <button id="openDelete" class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#exampleModalDelete"  ><i class="fa-solid fa-trash" ></i> Delete</button>
                         </td>
                     </tr>
                     ';
-                }
+            }
             ?>
         </tbody>
     </table>
@@ -200,9 +205,34 @@
             $("#btnUpdate").show();
 
         })
+        var row = '';
+        var rowIndex = '';
         $("body").on("click", "#openDelete", function () {
             var id = $(this).parents("tr").find("td").eq(0).text();
-            $("#id").val(id);
+            $("#tmp_id").val(id);
+            rowIndex = $(this).parents('tr').index();
+            $("#btnDeletes").click(function () {
+                row = $('body').find('tbody').find('tr');
+                row.eq(rowIndex).remove();
+                $.ajax({
+                    url: 'delete_data.php',
+                    method: 'post',
+                    data: {
+                        stu_id: id
+                    },
+                    cache: false,
+                    success: function (response) {
+                        if (response == 'success') {
+                            swal({
+                                title: "Good job!",
+                                text: "You clicked the button!",
+                                icon: "success",
+                                button: "Aww yiss!",
+                            });
+                        }
+                    }
+                })
+            })
         })
 
     });
