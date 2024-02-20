@@ -59,11 +59,9 @@
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
                             <button name="btnSave" id="btnSave" type="button" class="btn btn-primary"
                                 data-bs-dismiss="modal">Save</button>
-                            <button name="btnUpdate" id="btnUpdate" type="button"
+                            <button name="btnUpdate" id="btnUpdate" type="button" data-bs-dismiss="modal"
                                 class="btn btn-success">Update</button>
                         </div>
-                        <!-- Hide thumbnail -->
-                        <input type="hidden" name="hide_thumbnail" id="hide_thumbnail">
                         <!-- Hide Id -->
                         <input type="hidden" name="hide_id" id="hide_id">
                         <!-- Hide Image -->
@@ -84,7 +82,7 @@
                 </div>
                 <div class="modal-body">
                     <form action="" method="post" enctype="multipart/form-data">
-                        <input type="hidden" name="tmp_id" id="tmp_id">
+                        <input type="hidden" name="" id="delete_id">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
                         <button name="btnDelete" id="btnDeletes" type="button" class="btn btn-primary"
                             data-bs-dismiss="modal">Yes,Delete
@@ -115,12 +113,13 @@
                         <td>' . $row['id'] . '</td>
                         <td>' . $row['name'] . '</td>
                         <td>' . $row['gender'] . '</td>
-                        <td>' . $row['course'] . '}</td>
+                        <td>' . $row['course'] . '</td>
                         <td>
-                            <img src="image/' . $row['profile'] . '" width="120" height="120" style="object-fit: cover;" alt="">
+                            <img src="image/' . $row['profile'] . '" width="120" height="120" style="object-fit: cover;" alt="' . $row['profile'] . '">
                         </td>
                         <td>
-                            <button id="openUpdate" class="btn btn-success" type="button " data-bs-toggle="modal" data-bs-target="#myModal"><i class="fa-solid fa-pen-to-square"></i> Update</button>
+                            <button id="openUpdate" class="btn btn-success" type="button " data-bs-toggle="modal"
+                            data-bs-target="#exampleModal"><i class="fa-solid fa-pen-to-square"></i> Update</button>
                             <button id="openDelete" class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#exampleModalDelete"  ><i class="fa-solid fa-trash" ></i> Delete</button>
                         </td>
                     </tr>
@@ -132,35 +131,38 @@
 </body>
 <script>
     $(document).ready(function () {
+        // Pick up image
+        $("#chooseImage").click(function () {
+            $("#thumbnail").click();
+        })
+        $("#thumbnail").change(function () {
+            var form_data = new FormData();
+            var file = $("#thumbnail")[0].files;
+            form_data.append("thumbnail", file[0]);
+            $.ajax({
+                url: 'move_upload_file.php',
+                method: 'post',
+                data: form_data,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function (respone) {
+                    console.log(respone);
+                    $("#chooseImage").attr('src', 'image/' + respone);
+                    $("#hide_image").val(respone);
+                }
+            })
+        })
         $("#openAdd").click(function () {
+            // clear
+            $("#name").val("");
+            $("#gender").val("");
+            $("#course").val("");
+            $("#chooseImage").attr("src", "image/upload.webp");
+            //------------------------
             $("#title").text("Enter Student Information");
             $("#btnSave").show();
             $("#btnUpdate").hide();
-
-            // Pick up image
-            $("#chooseImage").click(function () {
-                $("#thumbnail").click();
-            })
-            $("#thumbnail").change(function () {
-                var form_data = new FormData();
-                var file = $("#thumbnail")[0].files;
-                form_data.append("thumbnail", file[0]);
-                $.ajax(
-                    {
-                        url: 'move_upload_file.php',
-                        method: 'post',
-                        data: form_data,
-                        cache: false,
-                        contentType: false,
-                        processData: false,
-                        success: function (respone) {
-                            console.log(respone);
-                            $("#chooseImage").attr('src', 'image/' + respone);
-                            $("#hide_image").val(respone);
-                        }
-                    }
-                )
-            })
             // add data
             $("#btnSave").click(function () {
                 var name = $("#name").val();
@@ -198,27 +200,80 @@
                     }
                 })
             })
-        })
+        });
+        var row = '';
+        var rowIndex = '';
         $("body").on("click", "#openUpdate", function () {
             $("#title").text("Edit Student Information");
             $("#btnSave").hide();
             $("#btnUpdate").show();
+            var id = $(this).parents("tr").find("td").eq(0).text();
+            var name = $(this).parents('tr').find('td').eq(1).text();
+            var gender = $(this).parents('tr').find('td').eq(2).text();
+            var course = $(this).parents('tr').find('td').eq(3).text();
+            var profile = $(this).parents('tr').find('td:eq(4) img').attr('alt');
 
+            $("#name").val(name);
+            $("#gender").val(gender);
+            $("#course").val(course);
+            $("#chooseImage").attr("src", "image/" + profile);
+            $("#hide_image").val(profile);
+            $("#hide_id").val(id);
+            rowIndex = $(this).parents('tr').index();
+            $("#btnUpdate").click(function () {
+                row = $('body').find('tbody').find('tr');
+                var name = $("#name").val();
+                var gender = $("#gender").val();
+                var course = $("#course").val();
+                var profile = $("#hide_image").val();
+                var id = $("#hide_id").val();
+
+                $.ajax({
+                    url: 'update_data.php',
+                    method: 'post',
+                    data: {
+                        stu_id: id,
+                        stu_name: name,
+                        stu_gender: gender,
+                        stu_course: course,
+                        stu_profile: profile,
+                    },
+                    cache: false,
+                    success: function (response) {
+                        if (response == 'success') {
+                            var data = `
+                                    <td>${id}</td>
+                                    <td>${name}</td>
+                                    <td>${gender}</td>
+                                    <td>${course}</td>
+                                    <td>
+                                        <img src="image/${profile}" width="120" height="120" style="object-fit: cover;" alt="">
+                                    </td>
+                                    <td>
+                                        <button id="openUpdate" class="btn btn-success" type="button " data-bs-toggle="modal" data-bs-target="#myModal"><i class="fa-solid fa-pen-to-square"></i> Update</button>
+                                        <button class="btn btn-danger" type="button "><i class="fa-solid fa-trash"></i> Delete</button>
+                                    </td>
+                                `;
+                            row.eq(rowIndex).html(data);
+                        }
+                    }
+                })
+            })
         })
-        var row = '';
-        var rowIndex = '';
+
         $("body").on("click", "#openDelete", function () {
             var id = $(this).parents("tr").find("td").eq(0).text();
-            $("#tmp_id").val(id);
+            $("#delete_id").val(id);
             rowIndex = $(this).parents('tr').index();
             $("#btnDeletes").click(function () {
                 row = $('body').find('tbody').find('tr');
                 row.eq(rowIndex).remove();
+                var _id = $("#delete_id").val();
                 $.ajax({
                     url: 'delete_data.php',
                     method: 'post',
                     data: {
-                        stu_id: id
+                        stu_id: _id
                     },
                     cache: false,
                     success: function (response) {
